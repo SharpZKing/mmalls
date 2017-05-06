@@ -190,6 +190,17 @@
     where username=#{username}
   </update>
 
+  <select id="checkPasswrod" parameterType="map" resultType="int">
+    select count(1) from mmall_user
+    where password = #{passwordOld}
+    and id = #{userId}
+  </select>
+  
+  <select id="checkEmailByUserId" resultType="int" parameterType="map">
+    select count(1) from mmall_user
+    where email = #{email}
+    and id != #{userId}
+  </select>
 
 
 </mapper>

@@ -24,14 +24,14 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public ServerResponse<User> login(String username, String password) {
-        /*int resultCount = userMapper.checkUserName(username);
+        int resultCount = userMapper.checkUserName(username);
         if(resultCount == 0 ){
             return ServerResponse.createByErrorMessage("用户名不存在");
-        }*/
-        ServerResponse validResponse = this.checkValid(username, password);
+        }
+        /*ServerResponse validResponse = this.checkValid(username, password);
         if (validResponse.isSuccess()) {
             return validResponse;
-        }
+        }*/
 
 
         //todo 密码登入MD5
@@ -159,5 +159,60 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("修改密码失败");
     }
 
+    public ServerResponse<String> resetPassword(String passwordOld, String passwordNew, User user){
+        //防止横向越权,要校验一下这个用户的旧密码,一定要指定是这个用户.因为我们会查询一个count(1),如果不指定id,那么结果就是true啦count>0;
+        int rowCount = userMapper.checkPasswrod(passwordOld, user.getId());
+        if(rowCount == 0){
+            return ServerResponse.createByErrorMessage("旧密码错误");
+        }
+
+        user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+        int updateCount = userMapper.updateByPrimaryKeySelective(user);
+        if(updateCount > 0){
+            return ServerResponse.createBySuccessMessage("密码更新成功");
+        }
+        return ServerResponse.createByErrorMessage("密码更新失败");
+    }
+
+    public ServerResponse<User> updateInformation(User user){
+        //username是不能被更新的
+        //email也要进行一个校验,校验新的email是不是已经存在,并且存在的email如果相同的话,不能是我们当前的这个用户的.
+        int resultCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
+        if(resultCount > 0){
+            return ServerResponse.createByErrorMessage("email已经存在，请更换email尝试更新");
+        }
+
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setEmail(user.getEmail());
+        updateUser.setPhone(user.getPhone());
+        updateUser.setQuestion(user.getQuestion());
+        updateUser.setAnswer(user.getAnswer());
+
+        int updateCount = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (updateCount > 0 ){
+            return ServerResponse.createBySuccess("更新个人信息成功",updateUser);
+        }
+        return ServerResponse.createByErrorMessage("更新个人信息失败");
+
+    }
+
+    public ServerResponse<User> getInformation(Integer userId){
+        User user = userMapper.selectByPrimaryKey(userId);
+        if(user == null){
+            return ServerResponse.createByErrorMessage("找不到当前用户");
+        }
+        user.setPassword(StringUtils.EMPTY);
+        return ServerResponse.createBySuccess(user);
+    }
+
+
+    //backend
+    public ServerResponse checkAdminRole(User user){
+        if(user!=null && user.getRole().intValue()==Const.Role.ROLE_ADMIN){
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
+    }
 
 }
