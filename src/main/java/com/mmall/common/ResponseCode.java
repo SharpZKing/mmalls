@@ -14,6 +14,7 @@ public enum ResponseCode {
     private final String desc;
 
     ResponseCode(int code, String desc){
+        //System.out.println("aa");
         this.code = code;
         this.desc = desc;
     }
@@ -25,5 +26,10 @@ public enum ResponseCode {
     public String getDesc(){
         return desc;
     }
+
+    public static void main(String[] args){
+        System.out.println("hhh");   //构造函数执行了四次
+    }
+
 
 }
