@@ -74,7 +74,7 @@ public class CategoryServiceImpl implements ICategoryService {
      * @param categoryId
      * @return
      */
-    public ServerResponse selectCategoryAndChildenById(Integer categoryId){
+    public ServerResponse<List<Integer>> selectCategoryAndChildenById(Integer categoryId){
         Set<Category> categorySet = Sets.newHashSet();
 
         List<Integer> categoryList = Lists.newArrayList();
